@@ -1,0 +1,9 @@
+{
+  "dimension": 768,
+  "n_clusters": 100,
+  "n_subvectors": 8,
+  "n_bits": 8,
+  "total_vectors": 98486,
+  "is_trained": true,
+  "use_gpu": false
+}
