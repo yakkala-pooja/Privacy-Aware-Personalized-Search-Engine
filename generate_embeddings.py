@@ -3,6 +3,8 @@ import numpy as np
 import torch
 from transformers import DistilBertTokenizer, DistilBertModel
 import warnings
+import time
+from tqdm import tqdm
 warnings.filterwarnings('ignore')
 
 class DistilBERTEmbedder:
@@ -40,7 +42,7 @@ class DistilBERTEmbedder:
         self.embedding_dim = self.model.config.hidden_size
         print(f"Model loaded successfully. Embedding dimension: {self.embedding_dim}")
     
-    def generate_embeddings(self, texts, batch_size=8, pooling_strategy='mean'):
+    def generate_embeddings(self, texts, batch_size=4, pooling_strategy='mean'):
         """
         Generate embeddings for a list of texts.
         
@@ -55,7 +57,7 @@ class DistilBERTEmbedder:
         embeddings = []
         
         # Process in batches to manage memory
-        for i in range(0, len(texts), batch_size):
+        for i in tqdm(range(0, len(texts), batch_size), desc="Generating embeddings"):
             batch_texts = texts[i:i + batch_size]
             
             # Tokenize batch
@@ -122,7 +124,7 @@ class DistilBERTEmbedder:
         print(f"Generating embeddings for {len(queries)} queries...")
         return self.generate_embeddings(queries, batch_size=batch_size, pooling_strategy='mean')
     
-    def generate_passage_embeddings(self, passages, batch_size=4):
+    def generate_passage_embeddings(self, passages, batch_size=2):
         """
         Generate embeddings for passages.
         
@@ -171,8 +173,15 @@ def load_and_embed_dataset(csv_file="marco_preprocessed.csv",
     print(f"Unique passages: {len(unique_passages)}")
     
     # Generate embeddings
+    start_time = time.time()
     query_embeddings = embedder.generate_query_embeddings(unique_queries.tolist())
+    query_time = time.time() - start_time
+    print(f"Query embeddings generated in {query_time:.2f} seconds")
+    
+    start_time = time.time()
     passage_embeddings = embedder.generate_passage_embeddings(unique_passages.tolist())
+    passage_time = time.time() - start_time
+    print(f"Passage embeddings generated in {passage_time:.2f} seconds")
     
     print(f"Query embeddings shape: {query_embeddings.shape}")
     print(f"Passage embeddings shape: {passage_embeddings.shape}")
@@ -236,7 +245,7 @@ def compute_similarity_scores(query_embeddings, passage_embeddings, query_idx, p
 
 if __name__ == "__main__":
     # Load and embed the dataset
-    print("Starting embedding generation...")
+    print("Starting embedding generation for entire dataset...")
     query_embeddings, passage_embeddings, df = load_and_embed_dataset()
     
     print("\nEmbedding generation complete!")
